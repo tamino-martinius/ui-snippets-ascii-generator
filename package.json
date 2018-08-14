@@ -42,6 +42,7 @@
     "deploy": "npm run build && gh-pages -d build"
   },
   "devDependencies": {
+    "@types/dat.gui": "^0.7.1",
     "@types/node": "10.0.9",
     "@types/webpack-env": "1.13.6",
     "autoprefixer": "8.5.0",
