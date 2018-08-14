@@ -7,7 +7,7 @@ interface Dict<T> {
 class AsciiArtGenerator {
   settings = {
     charSet: ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
-    charRegions: 1,
+    charSamples: 1,
   };
   debug = true;
   charRegions: Dict<number[]> = {};
@@ -15,7 +15,7 @@ class AsciiArtGenerator {
   constructor() {
     const gui: GUI = new dat.GUI();
     gui.add(this.settings, 'charSet').onChange(() => this.analyzeCharRegions());
-    gui.add(this.settings, 'charRegions', 1, 4, 1).onChange(() => this.analyzeCharRegions());
+    gui.add(this.settings, 'charSamples', 1, 4, 1).onChange(() => this.analyzeCharRegions());
     this.analyzeCharRegions();
   }
 
@@ -29,9 +29,9 @@ class AsciiArtGenerator {
     ctx.fillText(char, 2, 10);
     const data = ctx.getImageData(0, 0, 12, 12).data;
     const values: number[] = [];
-    const size = 12 / this.settings.charRegions;
-    for (let cellY = 0; cellY < this.settings.charRegions; cellY += 1) {
-      for (let cellX = 0; cellX < this.settings.charRegions; cellX += 1) {
+    const size = 12 / this.settings.charSamples;
+    for (let cellY = 0; cellY < this.settings.charSamples; cellY += 1) {
+      for (let cellX = 0; cellX < this.settings.charSamples; cellX += 1) {
         let value = 0;
         for (let posX = 0; posX < size; posX += 1) {
           for (let posY = 0; posY < size; posY += 1) {
@@ -43,9 +43,9 @@ class AsciiArtGenerator {
     }
     if (this.debug) {
       document.body.appendChild(canvas);
-      for (let cellX = 0; cellX < this.settings.charRegions; cellX += 1) {
-        for (let cellY = 0; cellY < this.settings.charRegions; cellY += 1) {
-          ctx.fillStyle = `rgba(255, 0, 255, ${values[cellX + cellY * this.settings.charRegions]})`;
+      for (let cellX = 0; cellX < this.settings.charSamples; cellX += 1) {
+        for (let cellY = 0; cellY < this.settings.charSamples; cellY += 1) {
+          ctx.fillStyle = `rgba(255, 0, 255, ${values[cellX + cellY * this.settings.charSamples]})`;
           ctx.fillRect(cellX * size, cellY * size, size, size);
         }
       }
