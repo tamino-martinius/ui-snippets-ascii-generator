@@ -9,14 +9,14 @@ class AsciiArtGenerator {
     charSet: ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
     charRegions: 1,
   };
-  debug = false;
+  debug = true;
   charRegions: Dict<number[]> = {};
 
   constructor() {
     const gui: GUI = new dat.GUI();
-    gui.add(this.settings, 'charSet').onChange(() => this.analyzeCharSet());
-    gui.add(this.settings, 'charRegions', 1, 4, 1).onChange(() => this.analyzeCharSet());
-    this.analyzeCharSet();
+    gui.add(this.settings, 'charSet').onChange(() => this.analyzeCharRegions());
+    gui.add(this.settings, 'charRegions', 1, 4, 1).onChange(() => this.analyzeCharRegions());
+    this.analyzeCharRegions();
   }
 
   analyzeChar(char: string) {
@@ -54,11 +54,36 @@ class AsciiArtGenerator {
     this.charRegions[char] = values;
   }
 
-  analyzeCharSet() {
-    console.log('Tough work');
+  normalizeCharRegions() {
+    let min = 1;
+    let max = 0;
+    for (const char in this.charRegions) {
+      for (const region of this.charRegions[char]) {
+        if (min > region) min = region;
+        if (max < region) max = region;
+      }
+    }
+    if (max > 0 && min != max) {
+      const diff = max - min;
+      for (const char in this.charRegions) {
+        const region = this.charRegions[char];
+        for (let index = 0; index < region.length; index += 1) {
+          region[index] = (region[index] - min) * (1 / diff);
+        }
+      }
+    }
+    if (this.debug) {
+      console.log({ min, max, charRegions: this.charRegions });
+      console.log(this.charRegions);
+    }
+  }
+
+  analyzeCharRegions() {
+    this.charRegions = {};
     for (const char of this.settings.charSet) {
       this.analyzeChar(char);
     }
+    this.normalizeCharRegions();
   }
 }
 
