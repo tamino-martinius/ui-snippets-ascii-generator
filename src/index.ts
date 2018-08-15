@@ -7,7 +7,9 @@ interface Dict<T> {
 class AsciiArtGenerator {
   settings = {
     charSet: ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
+    url: '/avatar.png',
     charSamples: 1,
+    size: 100,
   };
   debug = true;
   charRegions: Dict<number[]> = {};
