@@ -17,8 +17,11 @@ class AsciiArtGenerator {
   constructor() {
     const gui: GUI = new dat.GUI();
     gui.add(this.settings, 'charSet').onChange(() => this.analyzeCharRegions());
-    gui.add(this.settings, 'charSamples', 1, 4, 1).onChange(() => this.analyzeCharRegions());
+    gui.add(this.settings, 'url').onChange(() => this.analyzeCharRegions());
+    gui.add(this.settings, 'charSamples', 1, 4, 1).onChange(() => this.loadFromUrl());
+    gui.add(this.settings, 'size', 10, 300, 1);
     this.analyzeCharRegions();
+    this.loadFromUrl();
   }
 
   analyzeChar(char: string) {
@@ -86,6 +89,36 @@ class AsciiArtGenerator {
       this.analyzeChar(char);
     }
     this.normalizeCharRegions();
+  }
+
+  loadFromUrl() {
+    const img = document.createElement('img');
+    img.crossOrigin = 'Anonymous';
+    img.src = this.settings.url;
+    img.addEventListener('load', () => this.onImageLoaded(img))
+  }
+
+  onImageLoaded(img: HTMLImageElement) {
+    console.log(img);
+    const width = this.settings.size * this.settings.charSamples;
+    let height = ~~((img.height / img.width) * width);
+    console.log(img.height, img.width, height);
+
+    height -= height % this.settings.charSamples;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw 'context creation failed';
+    ctx.drawImage(img, 0, 0, width, height);
+    if (this.debug) {
+      document.body.appendChild(canvas);
+      console.log({ width, height });
+    }
+    this.generate(ctx, width, height);
+  }
+
+  generate(ctx: CanvasRenderingContext2D, width: number, height: number) {
   }
 }
 
