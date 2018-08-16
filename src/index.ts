@@ -16,6 +16,7 @@ class AsciiArtGenerator {
   debug = false;
   charRegions: Dict<number[]> = {};
   valueMap: number[][] = [];
+  normalizedMap: number[][] = [];
   width: number = 0;
   height: number = 0;
   cachedUrls: Dict<HTMLImageElement> = {};
@@ -37,8 +38,14 @@ class AsciiArtGenerator {
       this.loadFromUrl();
     });
     gui.add(this.settings, 'size', 10, 300, 1).onChange(() => this.loadFromUrl());
-    gui.add(this.settings, 'contrast', -1, 1, 0.01).onChange(() => this.loadFromUrl());
-    gui.add(this.settings, 'brightness', -1, 1, 0.01).onChange(() => this.loadFromUrl());
+    gui.add(this.settings, 'contrast', -1, 1, 0.01).onChange(() => {
+      this.normalizeValueMap();
+      this.generate();
+    });
+    gui.add(this.settings, 'brightness', -1, 1, 0.01).onChange(() => {
+      this.normalizeValueMap();
+      this.generate();
+    });
     this.analyzeCharRegions();
     this.loadFromUrl();
   }
@@ -191,12 +198,17 @@ class AsciiArtGenerator {
     }
     if (max > 0 && min != max) {
       const diff = max - min;
+      this.normalizedMap = [];
       for (const regions of this.valueMap) {
-        for (let index = 0; index < regions.length; index += 1) {
-          regions[index] = (regions[index] - min) * (1 / diff);
-          regions[index] = (this.settings.contrast + 1) * (regions[index] - 0.5) + 0.5 + this.settings.brightness;
+        const normals = Array.from(regions);
+        for (let index = 0; index < normals.length; index += 1) {
+          normals[index] = (normals[index] - min) * (1 / diff);
+          normals[index] = (this.settings.contrast + 1) * (normals[index] - 0.5) + 0.5 + this.settings.brightness;
         }
+        this.normalizedMap.push(normals);
       }
+    } else {
+      this.normalizedMap = this.valueMap;
     }
     if (this.debug) {
       console.log({ min, max, valueMap: this.valueMap });
@@ -229,7 +241,7 @@ class AsciiArtGenerator {
     for (let cellY = 0; cellY < this.height; cellY += 1) {
       for (let cellX = 0; cellX < this.width; cellX += 1) {
         const cell = document.createElement('div');
-        cell.innerHTML = this.getClosestChar(this.valueMap[cellX + cellY * this.width]).replace(' ', '&nbsp;');
+        cell.innerHTML = this.getClosestChar(this.normalizedMap[cellX + cellY * this.width]).replace(' ', '&nbsp;');
         this.asciiElement.appendChild(cell);
       }
     }
