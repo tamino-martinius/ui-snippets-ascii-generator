@@ -78,10 +78,15 @@ class AsciiArtGenerator {
     let min = 1;
     let max = 0;
     for (const char in this.charRegions) {
+      // let value = 0;
       for (const region of this.charRegions[char]) {
         if (min > region) min = region;
         if (max < region) max = region;
+        // value += region;
       }
+      // value /= this.settings.charSamples * this.settings.charSamples;
+      // if (min > value) min = value;
+      // if (max < value) max = value;
     }
     if (max > 0 && min != max) {
       const diff = max - min;
@@ -170,10 +175,15 @@ class AsciiArtGenerator {
     let min = 1;
     let max = 0;
     for (const regions of this.valueMap) {
+      // const value = 0;
       for (const region of regions) {
         if (min > region) min = region;
         if (max < region) max = region;
+        // value += region;
       }
+      // value /= this.settings.charSamples * this.settings.charSamples;
+      // if (min > value) min = value;
+      // if (max < value) max = value;
     }
     if (max > 0 && min != max) {
       const diff = max - min;
