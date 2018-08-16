@@ -368,19 +368,23 @@ class AsciiArtGenerator {
 
 const generator = new AsciiArtGenerator();
 console.log(generator);
+let isDemoRunning = true;
 
 let direction = 1;
-function demo() {
-  generator.settings.brightness += 0.01 * direction;
-  generator.normalizeValueMap();
-  generator.generate();
-  if (Math.abs(generator.settings.brightness) >= 1) {
-    direction *= -1;
+const demo = () => {
+  if (isDemoRunning) {
+    generator.settings.brightness += 0.05 * direction;
+    generator.normalizeValueMap();
+    generator.generate();
+    if (Math.abs(generator.settings.brightness) >= 1) {
+      direction *= -1;
+    }
+    requestAnimationFrame(demo);
   }
-  requestAnimationFrame(demo);
 };
 
-// generator.onload = () => {
-//   demo();
-// };
+generator.onload = () => {
+  demo();
+};
 
+window.addEventListener('click', () => isDemoRunning = false);
