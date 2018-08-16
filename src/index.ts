@@ -10,8 +10,10 @@ class AsciiArtGenerator {
     url: '/avatar.png',
     charSamples: 1,
     size: 50,
+    contrast: 0,
+    brightness: 0,
   };
-  debug = true;
+  debug = false;
   charRegions: Dict<number[]> = {};
   valueMap: number[][] = [];
   width: number = 0;
@@ -30,11 +32,13 @@ class AsciiArtGenerator {
       this.generate();
     });
     gui.add(this.settings, 'url').onChange(() => this.loadFromUrl());
-    gui.add(this.settings, 'charSamples', 1, 4, 1).onChange(() => {
+    gui.add(this.settings, 'charSamples', 1, 3, 1).onChange(() => {
       this.analyzeCharRegions();
       this.loadFromUrl();
     });
     gui.add(this.settings, 'size', 10, 300, 1).onChange(() => this.loadFromUrl());
+    gui.add(this.settings, 'contrast', -1, 1, 0.01).onChange(() => this.loadFromUrl());
+    gui.add(this.settings, 'brightness', -1, 1, 0.01).onChange(() => this.loadFromUrl());
     this.analyzeCharRegions();
     this.loadFromUrl();
   }
@@ -190,6 +194,7 @@ class AsciiArtGenerator {
       for (const regions of this.valueMap) {
         for (let index = 0; index < regions.length; index += 1) {
           regions[index] = (regions[index] - min) * (1 / diff);
+          regions[index] = (this.settings.contrast + 1) * (regions[index] - 0.5) + 0.5 + this.settings.brightness;
         }
       }
     }
