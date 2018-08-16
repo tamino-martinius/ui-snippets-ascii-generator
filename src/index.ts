@@ -228,7 +228,7 @@ class AsciiArtGenerator {
       this.debugImageElement.appendChild(canvas);
       canvas.style.setProperty('--width', this.width.toString());
       canvas.style.setProperty('--height', this.height.toString());
-      console.log({ width: this.width, height: this.height });
+      console.log({ img, width: this.width, height: this.height });
     }
     this.generateValueMap(ctx);
     if (!this.loaded && this.onload) this.onload();
