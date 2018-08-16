@@ -17,7 +17,7 @@ enum ColorPalette {
 
 class AsciiArtGenerator {
   settings = {
-    charSet: ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
+    charSet: ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~',
     url: '/avatar.png',
     charSamples: 1,
     size: 50,
