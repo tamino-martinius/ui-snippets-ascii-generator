@@ -18,13 +18,20 @@ class AsciiArtGenerator {
 
   constructor() {
     const gui: GUI = new dat.GUI();
-    gui.add(this.settings, 'charSet').onChange(() => this.analyzeCharRegions());
-    gui.add(this.settings, 'url').onChange(() => this.analyzeCharRegions());
-    gui.add(this.settings, 'charSamples', 1, 4, 1).onChange(() => this.loadFromUrl());
-    gui.add(this.settings, 'size', 10, 300, 1);
     const asciiElement = document.getElementById('ascii');
     if (!asciiElement) throw '#ascii Element is missing';
     this.asciiElement = asciiElement;
+
+    gui.add(this.settings, 'charSet').onChange(() => {
+      this.analyzeCharRegions();
+      this.generate();
+    });
+    gui.add(this.settings, 'url').onChange(() => this.loadFromUrl());
+    gui.add(this.settings, 'charSamples', 1, 4, 1).onChange(() => {
+      this.analyzeCharRegions();
+      this.loadFromUrl();
+    });
+    gui.add(this.settings, 'size', 10, 300, 1).onChange(() => this.loadFromUrl());
     this.analyzeCharRegions();
     this.loadFromUrl();
   }
