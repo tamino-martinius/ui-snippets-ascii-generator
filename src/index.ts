@@ -246,7 +246,7 @@ class AsciiArtGenerator {
         for (let posY = 0; posY < this.settings.charSamples; posY += 1) {
           for (let posX = 0; posX < this.settings.charSamples; posX += 1) {
             const pos = (cellX * this.settings.charSamples + posX) * 4 + (cellY * this.settings.charSamples + posY) * rowLength;
-            const alpha = data[pos + 2] / 255;
+            const alpha = data[pos + 3] / 255;
             const values = data.slice(pos, pos + 3);
             const value = 1 - ((Math.max(...values) + Math.min(...values)) / 510 * (alpha) + 1 - alpha);
             if (this.settings.debug) {
