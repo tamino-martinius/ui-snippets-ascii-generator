@@ -216,6 +216,9 @@ class AsciiArtGenerator {
   }
 
   generate() {
+    while (this.asciiElement.firstChild) {
+      this.asciiElement.removeChild(this.asciiElement.firstChild);
+    }
     this.asciiElement.style.setProperty('--width', this.width.toString());
 
     for (let cellY = 0; cellY < this.height; cellY += 1) {
