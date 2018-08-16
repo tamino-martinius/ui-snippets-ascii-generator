@@ -1,7 +1,22 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
 #ascii {
   display: grid;
   grid-template-columns: repeat(var(--width), 1fr);
   font-family: 'Courier New', Courier, monospace;
   font-size: 1vw;
   width: 0;
+}
+
+#debug-image canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--width) * 5.24px);
+  height: calc(var(--height) * 10px);
+  z-index: -1;
 }
