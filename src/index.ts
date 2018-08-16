@@ -1,4 +1,5 @@
 import { GUI } from 'dat.gui'
+import { url } from 'inspector';
 declare var dat: any;
 interface Dict<T> {
   [key: string]: T;
@@ -12,21 +13,25 @@ class AsciiArtGenerator {
     size: 50,
     contrast: 0,
     brightness: 0,
+    debug: false,
   };
-  debug = false;
   charRegions: Dict<number[]> = {};
+  colorMap: number[][] = [];
   valueMap: number[][] = [];
   normalizedMap: number[][] = [];
   width: number = 0;
   height: number = 0;
   cachedUrls: Dict<HTMLImageElement> = {};
   asciiElement: HTMLElement;
+  debugImageElement: HTMLElement;
+  debugCharsElement: HTMLElement;
 
   constructor() {
     const gui: GUI = new dat.GUI();
-    const asciiElement = document.getElementById('ascii');
-    if (!asciiElement) throw '#ascii Element is missing';
-    this.asciiElement = asciiElement;
+    const elements = this.elements;
+    this.asciiElement = elements.asciiElement;
+    this.debugImageElement = elements.debugImageElement;
+    this.debugCharsElement = elements.debugCharsElement;
 
     gui.add(this.settings, 'charSet').onChange(() => {
       this.analyzeCharRegions();
@@ -37,7 +42,7 @@ class AsciiArtGenerator {
       this.analyzeCharRegions();
       this.loadFromUrl();
     });
-    gui.add(this.settings, 'size', 10, 300, 1).onChange(() => this.loadFromUrl());
+    gui.add(this.settings, 'size', 10, 150, 1).onChange(() => this.loadFromUrl());
     gui.add(this.settings, 'contrast', -1, 1, 0.01).onChange(() => {
       this.normalizeValueMap();
       this.generate();
@@ -46,8 +51,22 @@ class AsciiArtGenerator {
       this.normalizeValueMap();
       this.generate();
     });
+    gui.add(this.settings, 'debug').onChange(() => {
+      this.analyzeCharRegions();
+      this.loadFromUrl();
+    });
     this.analyzeCharRegions();
     this.loadFromUrl();
+  }
+
+  get elements() {
+    const asciiElement = document.getElementById('ascii');
+    if (!asciiElement) throw '#ascii Element is missing';
+    const debugImageElement = document.getElementById('debug-image');
+    if (!debugImageElement) throw '#debug-image Element is missing';
+    const debugCharsElement = document.getElementById('debug-chars');
+    if (!debugCharsElement) throw '#debug-chars Element is missing';
+    return { asciiElement, debugImageElement, debugCharsElement };
   }
 
   analyzeChar(char: string) {
@@ -72,8 +91,8 @@ class AsciiArtGenerator {
         values.push(value / (size * size) / 255);
       }
     }
-    if (this.debug) {
-      document.body.appendChild(canvas);
+    if (this.settings.debug) {
+      this.debugCharsElement.appendChild(canvas);
       for (let cellX = 0; cellX < this.settings.charSamples; cellX += 1) {
         for (let cellY = 0; cellY < this.settings.charSamples; cellY += 1) {
           ctx.fillStyle = `rgba(255, 0, 255, ${values[cellX + cellY * this.settings.charSamples]})`;
@@ -108,12 +127,13 @@ class AsciiArtGenerator {
         }
       }
     }
-    if (this.debug) {
+    if (this.settings.debug) {
       console.log({ min, max, charRegions: this.charRegions });
     }
   }
 
   analyzeCharRegions() {
+    this.clearElement(this.debugCharsElement);
     this.charRegions = {};
     for (const char of this.settings.charSet) {
       this.analyzeChar(char);
@@ -132,11 +152,16 @@ class AsciiArtGenerator {
         this.cachedUrls[this.settings.url] = img;
         this.onImageLoaded(img);
       });
+      img.addEventListener('error', () => {
+        const urls = Object.keys(this.cachedUrls);
+        if (urls.length > 0) {
+          this.onImageLoaded(this.cachedUrls[urls[urls.length - 1]]);
+        }
+      });
     }
   }
 
   onImageLoaded(img: HTMLImageElement) {
-    console.log(img);
     this.width = this.settings.size;
     this.height = ~~((img.height / img.width) * this.width / 1.9);
     const canvas = document.createElement('canvas');
@@ -145,8 +170,9 @@ class AsciiArtGenerator {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw 'context creation failed';
     ctx.drawImage(img, 0, 0, this.width * this.settings.charSamples, this.height * this.settings.charSamples);
-    if (this.debug) {
-      document.body.appendChild(canvas);
+    this.clearElement(this.debugImageElement);
+    if (this.settings.debug) {
+      this.debugImageElement.appendChild(canvas);
       console.log({ width: this.width, height: this.height });
     }
     this.generateValueMap(ctx);
@@ -154,18 +180,24 @@ class AsciiArtGenerator {
 
   generateValueMap(ctx: CanvasRenderingContext2D) {
     this.valueMap = [];
+    this.colorMap = [];
+    const charSamplesSquare = this.settings.charSamples * this.settings.charSamples;
     const data = Array.from(ctx.getImageData(0, 0, this.width * this.settings.charSamples, this.height * this.settings.charSamples).data);
     const rowLength = this.width * this.settings.charSamples * 4;
     for (let cellY = 0; cellY < this.height; cellY += 1) {
       for (let cellX = 0; cellX < this.width; cellX += 1) {
         const cell = [];
+        const color = [0, 0, 0];
         for (let posY = 0; posY < this.settings.charSamples; posY += 1) {
           for (let posX = 0; posX < this.settings.charSamples; posX += 1) {
             const pos = (cellX * this.settings.charSamples + posX) * 4 + (cellY * this.settings.charSamples + posY) * rowLength;
             const alpha = data[pos + 2] / 255;
             const values = data.slice(pos, pos + 3);
+            color[0] += values[0];
+            color[1] += values[1];
+            color[2] += values[2];
             const value = 1 - ((Math.max(...values) + Math.min(...values)) / 510 * (alpha) + 1 - alpha);
-            if (this.debug) {
+            if (this.settings.debug) {
               ctx.fillStyle = `rgba(255, 0, 255, ${value})`;
               ctx.fillRect(cellX * this.settings.charSamples + posX, cellY * this.settings.charSamples + posY, 1, 1);
             }
@@ -173,10 +205,11 @@ class AsciiArtGenerator {
           }
         }
         this.valueMap.push(cell);
+        this.colorMap.push(color.map(c => c /= charSamplesSquare));
       }
     }
-    if (this.debug) {
-      console.log({ valueMap: this.valueMap });
+    if (this.settings.debug) {
+      console.log({ valueMap: this.valueMap, colorMap: this.colorMap });
     }
     this.normalizeValueMap();
     this.generate();
@@ -210,7 +243,7 @@ class AsciiArtGenerator {
     } else {
       this.normalizedMap = this.valueMap;
     }
-    if (this.debug) {
+    if (this.settings.debug) {
       console.log({ min, max, valueMap: this.valueMap });
     }
   }
@@ -232,10 +265,14 @@ class AsciiArtGenerator {
     return minChar;
   }
 
-  generate() {
-    while (this.asciiElement.firstChild) {
-      this.asciiElement.removeChild(this.asciiElement.firstChild);
+  clearElement(element: HTMLElement) {
+    while (element.firstChild) {
+      element.removeChild(element.firstChild);
     }
+  }
+
+  generate() {
+    this.clearElement(this.asciiElement);
     this.asciiElement.style.setProperty('--width', this.width.toString());
 
     for (let cellY = 0; cellY < this.height; cellY += 1) {
