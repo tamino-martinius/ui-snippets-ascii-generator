@@ -168,6 +168,7 @@ class AsciiArtGenerator {
       console.log({ valueMap: this.valueMap });
     }
     this.normalizeValueMap();
+    this.generate();
   }
 
   normalizeValueMap() {
@@ -214,7 +215,16 @@ class AsciiArtGenerator {
     return minChar;
   }
 
-  generate(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  generate() {
+    this.asciiElement.style.setProperty('--width', this.width.toString());
+
+    for (let cellY = 0; cellY < this.height; cellY += 1) {
+      for (let cellX = 0; cellX < this.width; cellX += 1) {
+        const cell = document.createElement('div');
+        cell.innerHTML = this.getClosestChar(this.valueMap[cellX + cellY * this.width]).replace(' ', '&nbsp;');
+        this.asciiElement.appendChild(cell);
+      }
+    }
   }
 }
 
