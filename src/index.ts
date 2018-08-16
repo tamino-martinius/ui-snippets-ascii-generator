@@ -196,8 +196,22 @@ class AsciiArtGenerator {
       console.log({ min, max, valueMap: this.valueMap });
     }
   }
+
+  getClosestChar(values: number[]) {
+    let minDiff = Number.MAX_VALUE;
+    let minChar = '';
+    for (const char in this.charRegions) {
+      const regions = this.charRegions[char];
+      let diff = 0;
+      for (let index = 0; index < regions.length; index++) {
+        diff += Math.abs(regions[index] - values[index]);
+      }
+      if (diff < minDiff) {
+        minDiff = diff;
+        minChar = char;
+      }
     }
-    this.generate(ctx, width, height);
+    return minChar;
   }
 
   generate(ctx: CanvasRenderingContext2D, width: number, height: number) {
