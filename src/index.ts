@@ -13,6 +13,8 @@ class AsciiArtGenerator {
   };
   debug = true;
   charRegions: Dict<number[]> = {};
+  width: number = 0;
+  height: number = 0;
   cachedUrls: Dict<HTMLImageElement> = {};
   asciiElement: HTMLElement;
 
@@ -119,19 +121,20 @@ class AsciiArtGenerator {
   onImageLoaded(img: HTMLImageElement) {
     console.log(img);
     const width = this.settings.size * this.settings.charSamples;
-    let height = ~~((img.height / img.width) * width);
-    console.log(img.height, img.width, height);
-
-    height -= height % this.settings.charSamples;
+    this.width = this.settings.size;
+    this.height = ~~((img.height / img.width) * this.width / 1.9);
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = this.width * this.settings.charSamples;
+    canvas.height = this.height * this.settings.charSamples;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw 'context creation failed';
-    ctx.drawImage(img, 0, 0, width, height);
+    ctx.drawImage(img, 0, 0, this.width * this.settings.charSamples, this.height * this.settings.charSamples);
     if (this.debug) {
       document.body.appendChild(canvas);
-      console.log({ width, height });
+      console.log({ width: this.width, height: this.height });
+    }
+    this.generateValueMap(ctx);
+  }
     }
     this.generate(ctx, width, height);
   }
