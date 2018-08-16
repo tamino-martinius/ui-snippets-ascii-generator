@@ -248,7 +248,7 @@ class AsciiArtGenerator {
             const pos = (cellX * this.settings.charSamples + posX) * 4 + (cellY * this.settings.charSamples + posY) * rowLength;
             const alpha = data[pos + 3] / 255;
             const values = data.slice(pos, pos + 3);
-            const value = 1 - ((Math.max(...values) + Math.min(...values)) / 510 * (alpha) + 1 - alpha);
+            const value = 1 - ((values[0] + values[1] + values[2]) / 765 * (alpha) + 1 - alpha);
             if (this.settings.debug) {
               ctx.fillStyle = `rgba(255, 0, 255, ${value})`;
               ctx.fillRect(cellX * this.settings.charSamples + posX, cellY * this.settings.charSamples + posY, 1, 1);
