@@ -6,6 +6,7 @@
     "lib": [
       "dom",
       "es5",
+      "es6",
       "scripthost",
       "es2015.promise"
     ],                                        /* Specify library files to be included in the compilation:  */
