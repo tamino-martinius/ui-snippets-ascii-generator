@@ -6,10 +6,12 @@ interface Dict<T> {
 }
 
 enum ColorPalette {
-  None = 'none',
-  Greyscale16 = 'grey16',
-  Greyscale256 = 'grey',
-  Color32 = 'color32',
+  Monochrome = 'none',
+  Grey2Bit = 'grey2bit',
+  Grey4Bit = 'grey4bit',
+  Grey8Bit = 'grey8bit',
+  Color3Bit = 'color3bit',
+  Color4Bit = 'color4bit',
   ColorFull = 'color',
 }
 
@@ -22,7 +24,7 @@ class AsciiArtGenerator {
     contrast: 0,
     brightness: 0,
     alpha: 0,
-    ColorPalette: 'none',
+    ColorPalette: ColorPalette.Monochrome,
     debug: false,
   };
   charRegions: Dict<number[]> = {};
@@ -88,7 +90,36 @@ class AsciiArtGenerator {
   }
 
   generatePalettes() {
+    this.colorPalettes[ColorPalette.Grey2Bit] = [
+      [0, 0, 0],
+      [104, 104, 104],
+      [184, 184, 184],
+      [255, 255, 255],
+    ];
 
+    this.colorPalettes[ColorPalette.Grey4Bit] = [];
+    for (let i = 0; i < 16; i += 1) {
+      this.colorPalettes[ColorPalette.Grey4Bit].push([i * 17, i * 17, i * 17]);
+    }
+
+    this.colorPalettes[ColorPalette.Grey8Bit] = [];
+    for (let i = 0; i < 256; i += 1) {
+      this.colorPalettes[ColorPalette.Grey8Bit].push([i, i, i]);
+    }
+    this.colorPalettes[ColorPalette.Color3Bit] = [
+      [0, 0, 0],
+      [0, 249, 45],
+      [0, 252, 254],
+      [255, 48, 21],
+      [255, 62, 253],
+      [254, 253, 52],
+      [16, 37, 251],
+      [255, 255, 255],
+    ];
+    this.colorPalettes[ColorPalette.Color4Bit] = [...this.colorPalettes[ColorPalette.Color3Bit]];
+    for (let i = 1; i < 8; i += 1) {
+      this.colorPalettes[ColorPalette.Color4Bit].push([i * 32, i * 32, i * 32]);
+    }
   }
 
   analyzeChar(char: string) {
@@ -195,6 +226,8 @@ class AsciiArtGenerator {
     this.clearElement(this.debugImageElement);
     if (this.settings.debug) {
       this.debugImageElement.appendChild(canvas);
+      canvas.style.setProperty('--width', this.width.toString());
+      canvas.style.setProperty('--height', this.height.toString());
       console.log({ width: this.width, height: this.height });
     }
     this.generateValueMap(ctx);
@@ -295,7 +328,7 @@ class AsciiArtGenerator {
     const r = color[0] > 0 ? ~~color[0] : 255;
     const g = color[1] > 0 ? ~~color[1] : 255;
     const b = color[2] > 0 ? ~~color[2] : 255;
-    const a = Math.max(0, Math.min(1, color[2] / 255 + this.settings.alpha));
+    const a = Math.max(0, Math.min(1, color[3] / 255 + this.settings.alpha));
     return `rgba(${r},${g},${b},${a})`;
   }
 
@@ -306,15 +339,13 @@ class AsciiArtGenerator {
       let closestColor = [0, 0, 0];
       let minDiff = Number.MAX_VALUE;
       for (const paletteColor of this.colorPalettes[this.settings.ColorPalette]) {
-        let diff = 0;
-        for (let index = 0; index < 3; index += 1) {
-          diff += Math.abs(color[index] - paletteColor[index]);
-        }
+        const diff = Math.abs(color[0] - paletteColor[0] + color[1] - paletteColor[1] + color[2] - paletteColor[2]);
         if (diff < minDiff) {
-          minDiff = f
+          minDiff = diff;
+          closestColor = paletteColor;
         }
       }
-      return this.arrayToRgba(closestColor);
+      return this.arrayToRgba([...closestColor, color[3]]);
     }
   }
 
@@ -325,7 +356,7 @@ class AsciiArtGenerator {
     for (let cellY = 0; cellY < this.height; cellY += 1) {
       for (let cellX = 0; cellX < this.width; cellX += 1) {
         const cell = document.createElement('div');
-        if (this.settings.ColorPalette !== ColorPalette.None) {
+        if (this.settings.ColorPalette !== ColorPalette.Monochrome) {
           cell.style.color = this.getCharColor(this.colorMap[cellX + cellY * this.width]);
         }
         cell.innerHTML = this.getClosestChar(this.normalizedMap[cellX + cellY * this.width]).replace(' ', '&nbsp;');
