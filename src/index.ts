@@ -13,6 +13,7 @@ class AsciiArtGenerator {
   };
   debug = true;
   charRegions: Dict<number[]> = {};
+  valueMap: number[][] = [];
   width: number = 0;
   height: number = 0;
   cachedUrls: Dict<HTMLImageElement> = {};
@@ -134,6 +135,34 @@ class AsciiArtGenerator {
       console.log({ width: this.width, height: this.height });
     }
     this.generateValueMap(ctx);
+  }
+
+  generateValueMap(ctx: CanvasRenderingContext2D) {
+    this.valueMap = [];
+    const data = Array.from(ctx.getImageData(0, 0, this.width * this.settings.charSamples, this.height * this.settings.charSamples).data);
+    const rowLength = this.width * this.settings.charSamples * 4;
+    for (let cellY = 0; cellY < this.height; cellY += 1) {
+      for (let cellX = 0; cellX < this.width; cellX += 1) {
+        const cell = [];
+        for (let posY = 0; posY < this.settings.charSamples; posY += 1) {
+          for (let posX = 0; posX < this.settings.charSamples; posX += 1) {
+            const pos = (cellX * this.settings.charSamples + posX) * 4 + (cellY * this.settings.charSamples + posY) * rowLength;
+            const alpha = data[pos + 2] / 255;
+            const values = data.slice(pos, pos + 3);
+            const value = 1 - ((Math.max(...values) + Math.min(...values)) / 510 * (alpha) + 1 - alpha);
+            if (this.debug) {
+              ctx.fillStyle = `rgba(255, 0, 255, ${value})`;
+              ctx.fillRect(cellX * this.settings.charSamples + posX, cellY * this.settings.charSamples + posY, 1, 1);
+            }
+            cell.push(value);
+          }
+        }
+        this.valueMap.push(cell);
+      }
+    }
+    if (this.debug) {
+      console.log({ valueMap: this.valueMap });
+    }
   }
     }
     this.generate(ctx, width, height);
