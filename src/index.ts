@@ -13,6 +13,7 @@ class AsciiArtGenerator {
   };
   debug = true;
   charRegions: Dict<number[]> = {};
+  asciiElement: HTMLElement;
 
   constructor() {
     const gui: GUI = new dat.GUI();
@@ -20,6 +21,9 @@ class AsciiArtGenerator {
     gui.add(this.settings, 'url').onChange(() => this.analyzeCharRegions());
     gui.add(this.settings, 'charSamples', 1, 4, 1).onChange(() => this.loadFromUrl());
     gui.add(this.settings, 'size', 10, 300, 1);
+    const asciiElement = document.getElementById('ascii');
+    if (!asciiElement) throw '#ascii Element is missing';
+    this.asciiElement = asciiElement;
     this.analyzeCharRegions();
     this.loadFromUrl();
   }
