@@ -13,6 +13,7 @@ class AsciiArtGenerator {
   };
   debug = true;
   charRegions: Dict<number[]> = {};
+  cachedUrls: Dict<HTMLImageElement> = {};
   asciiElement: HTMLElement;
 
   constructor() {
@@ -96,10 +97,17 @@ class AsciiArtGenerator {
   }
 
   loadFromUrl() {
-    const img = document.createElement('img');
-    img.crossOrigin = 'Anonymous';
-    img.src = this.settings.url;
-    img.addEventListener('load', () => this.onImageLoaded(img))
+    if (this.cachedUrls[this.settings.url]) {
+      this.onImageLoaded(this.cachedUrls[this.settings.url]);
+    } else {
+      const img = document.createElement('img');
+      img.crossOrigin = 'Anonymous';
+      img.src = this.settings.url;
+      img.addEventListener('load', () => {
+        this.cachedUrls[this.settings.url] = img;
+        this.onImageLoaded(img);
+      });
+    }
   }
 
   onImageLoaded(img: HTMLImageElement) {
