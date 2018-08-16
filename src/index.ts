@@ -91,7 +91,6 @@ class AsciiArtGenerator {
     }
     if (this.debug) {
       console.log({ min, max, charRegions: this.charRegions });
-      console.log(this.charRegions);
     }
   }
 
