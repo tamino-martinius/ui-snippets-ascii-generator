@@ -126,7 +126,6 @@ class AsciiArtGenerator {
 
   onImageLoaded(img: HTMLImageElement) {
     console.log(img);
-    const width = this.settings.size * this.settings.charSamples;
     this.width = this.settings.size;
     this.height = ~~((img.height / img.width) * this.width / 1.9);
     const canvas = document.createElement('canvas');
