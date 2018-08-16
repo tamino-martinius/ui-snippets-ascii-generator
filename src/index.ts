@@ -83,9 +83,9 @@ class AsciiArtGenerator {
     if (max > 0 && min != max) {
       const diff = max - min;
       for (const char in this.charRegions) {
-        const region = this.charRegions[char];
-        for (let index = 0; index < region.length; index += 1) {
-          region[index] = (region[index] - min) * (1 / diff);
+        const regions = this.charRegions[char];
+        for (let index = 0; index < regions.length; index += 1) {
+          regions[index] = (regions[index] - min) * (1 / diff);
         }
       }
     }
