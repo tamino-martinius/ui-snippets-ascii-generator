@@ -1,3 +1,7 @@
-b {
-  color: green;
+#ascii {
+  display: grid;
+  grid-template-columns: repeat(var(--width), 1fr);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1vw;
+  width: 0;
 }
