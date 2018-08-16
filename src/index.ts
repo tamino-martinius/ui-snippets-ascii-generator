@@ -25,6 +25,8 @@ class AsciiArtGenerator {
   asciiElement: HTMLElement;
   debugImageElement: HTMLElement;
   debugCharsElement: HTMLElement;
+  loaded: boolean = false;
+  onload?: () => void;
 
   constructor() {
     const gui: GUI = new dat.GUI();
@@ -47,7 +49,7 @@ class AsciiArtGenerator {
       this.normalizeValueMap();
       this.generate();
     });
-    gui.add(this.settings, 'brightness', -1, 1, 0.01).onChange(() => {
+    gui.add(this.settings, 'brightness', -1, 1, 0.01).listen().onChange(() => {
       this.normalizeValueMap();
       this.generate();
     });
@@ -176,6 +178,7 @@ class AsciiArtGenerator {
       console.log({ width: this.width, height: this.height });
     }
     this.generateValueMap(ctx);
+    if (!this.loaded && this.onload) this.onload();
   }
 
   generateValueMap(ctx: CanvasRenderingContext2D) {
@@ -287,4 +290,19 @@ class AsciiArtGenerator {
 
 const generator = new AsciiArtGenerator();
 console.log(generator);
+
+let direction = 1;
+function demo() {
+  generator.settings.brightness += 0.01 * direction;
+  generator.normalizeValueMap();
+  generator.generate();
+  if (Math.abs(generator.settings.brightness) >= 1) {
+    direction *= -1;
+  }
+  requestAnimationFrame(demo);
+};
+
+// generator.onload = () => {
+//   demo();
+// };
 
