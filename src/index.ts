@@ -226,10 +226,10 @@ class AsciiArtGenerator {
     this.clearElement(this.debugImageElement);
     if (this.settings.debug) {
       this.debugImageElement.appendChild(canvas);
-      canvas.style.setProperty('--width', this.width.toString());
-      canvas.style.setProperty('--height', this.height.toString());
       console.log({ img, width: this.width, height: this.height });
     }
+    document.body.style.setProperty('--width', this.width.toString());
+    document.body.style.setProperty('--height', this.height.toString());
     this.generateValueMap(ctx);
     if (!this.loaded && this.onload) this.onload();
   }
@@ -351,8 +351,6 @@ class AsciiArtGenerator {
 
   generate() {
     this.clearElement(this.asciiElement);
-    this.asciiElement.style.setProperty('--width', this.width.toString());
-
     for (let cellY = 0; cellY < this.height; cellY += 1) {
       for (let cellX = 0; cellX < this.width; cellX += 1) {
         const cell = document.createElement('div');
