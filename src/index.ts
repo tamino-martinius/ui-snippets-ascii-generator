@@ -163,6 +163,29 @@ class AsciiArtGenerator {
     if (this.debug) {
       console.log({ valueMap: this.valueMap });
     }
+    this.normalizeValueMap();
+  }
+
+  normalizeValueMap() {
+    let min = 1;
+    let max = 0;
+    for (const regions of this.valueMap) {
+      for (const region of regions) {
+        if (min > region) min = region;
+        if (max < region) max = region;
+      }
+    }
+    if (max > 0 && min != max) {
+      const diff = max - min;
+      for (const regions of this.valueMap) {
+        for (let index = 0; index < regions.length; index += 1) {
+          regions[index] = (regions[index] - min) * (1 / diff);
+        }
+      }
+    }
+    if (this.debug) {
+      console.log({ min, max, valueMap: this.valueMap });
+    }
   }
     }
     this.generate(ctx, width, height);
