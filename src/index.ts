@@ -50,8 +50,8 @@ class AsciiArtGenerator {
     for (let cellY = 0; cellY < this.settings.charSamples; cellY += 1) {
       for (let cellX = 0; cellX < this.settings.charSamples; cellX += 1) {
         let value = 0;
-        for (let posX = 0; posX < size; posX += 1) {
-          for (let posY = 0; posY < size; posY += 1) {
+        for (let posY = 0; posY < size; posY += 1) {
+          for (let posX = 0; posX < size; posX += 1) {
             value += data[(cellX * size + posX + (cellY * size + posY) * 12) * 4 + 3];
           }
         }
