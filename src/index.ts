@@ -5,6 +5,14 @@ interface Dict<T> {
   [key: string]: T;
 }
 
+enum ColorPalette {
+  None = 'none',
+  Greyscale16 = 'grey16',
+  Greyscale256 = 'grey',
+  Color32 = 'color32',
+  ColorFull = 'color',
+}
+
 class AsciiArtGenerator {
   settings = {
     charSet: ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
@@ -13,6 +21,8 @@ class AsciiArtGenerator {
     size: 50,
     contrast: 0,
     brightness: 0,
+    alpha: 0,
+    ColorPalette: 'none',
     debug: false,
   };
   charRegions: Dict<number[]> = {};
@@ -26,6 +36,7 @@ class AsciiArtGenerator {
   debugImageElement: HTMLElement;
   debugCharsElement: HTMLElement;
   loaded: boolean = false;
+  colorPalettes: Dict<number[][]> = {};
   onload?: () => void;
 
   constructor() {
@@ -53,10 +64,15 @@ class AsciiArtGenerator {
       this.normalizeValueMap();
       this.generate();
     });
+    gui.add(this.settings, 'alpha', -1, 1, 0.01).listen().onChange(() => this.generate());
+    gui.add(this.settings, 'ColorPalette', ColorPalette).onChange(() => {
+      this.generate();
+    });
     gui.add(this.settings, 'debug').onChange(() => {
       this.analyzeCharRegions();
       this.loadFromUrl();
     });
+    this.generatePalettes();
     this.analyzeCharRegions();
     this.loadFromUrl();
   }
@@ -69,6 +85,10 @@ class AsciiArtGenerator {
     const debugCharsElement = document.getElementById('debug-chars');
     if (!debugCharsElement) throw '#debug-chars Element is missing';
     return { asciiElement, debugImageElement, debugCharsElement };
+  }
+
+  generatePalettes() {
+
   }
 
   analyzeChar(char: string) {
@@ -190,15 +210,11 @@ class AsciiArtGenerator {
     for (let cellY = 0; cellY < this.height; cellY += 1) {
       for (let cellX = 0; cellX < this.width; cellX += 1) {
         const cell = [];
-        const color = [0, 0, 0];
         for (let posY = 0; posY < this.settings.charSamples; posY += 1) {
           for (let posX = 0; posX < this.settings.charSamples; posX += 1) {
             const pos = (cellX * this.settings.charSamples + posX) * 4 + (cellY * this.settings.charSamples + posY) * rowLength;
             const alpha = data[pos + 2] / 255;
             const values = data.slice(pos, pos + 3);
-            color[0] += values[0];
-            color[1] += values[1];
-            color[2] += values[2];
             const value = 1 - ((Math.max(...values) + Math.min(...values)) / 510 * (alpha) + 1 - alpha);
             if (this.settings.debug) {
               ctx.fillStyle = `rgba(255, 0, 255, ${value})`;
@@ -208,7 +224,8 @@ class AsciiArtGenerator {
           }
         }
         this.valueMap.push(cell);
-        this.colorMap.push(color.map(c => c /= charSamplesSquare));
+        const pos = (cellX * this.settings.charSamples) * 4 + (cellY * this.settings.charSamples) * rowLength;
+        this.colorMap.push(data.slice(pos, pos + 4));
       }
     }
     if (this.settings.debug) {
@@ -274,6 +291,33 @@ class AsciiArtGenerator {
     }
   }
 
+  arrayToRgba(color: number[]) {
+    const r = color[0] > 0 ? ~~color[0] : 255;
+    const g = color[1] > 0 ? ~~color[1] : 255;
+    const b = color[2] > 0 ? ~~color[2] : 255;
+    const a = Math.max(0, Math.min(1, color[2] / 255 + this.settings.alpha));
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  getCharColor(color: number[]) {
+    if (this.settings.ColorPalette === ColorPalette.ColorFull) {
+      return this.arrayToRgba(color);
+    } else {
+      let closestColor = [0, 0, 0];
+      let minDiff = Number.MAX_VALUE;
+      for (const paletteColor of this.colorPalettes[this.settings.ColorPalette]) {
+        let diff = 0;
+        for (let index = 0; index < 3; index += 1) {
+          diff += Math.abs(color[index] - paletteColor[index]);
+        }
+        if (diff < minDiff) {
+          minDiff = f
+        }
+      }
+      return this.arrayToRgba(closestColor);
+    }
+  }
+
   generate() {
     this.clearElement(this.asciiElement);
     this.asciiElement.style.setProperty('--width', this.width.toString());
@@ -281,6 +325,9 @@ class AsciiArtGenerator {
     for (let cellY = 0; cellY < this.height; cellY += 1) {
       for (let cellX = 0; cellX < this.width; cellX += 1) {
         const cell = document.createElement('div');
+        if (this.settings.ColorPalette !== ColorPalette.None) {
+          cell.style.color = this.getCharColor(this.colorMap[cellX + cellY * this.width]);
+        }
         cell.innerHTML = this.getClosestChar(this.normalizedMap[cellX + cellY * this.width]).replace(' ', '&nbsp;');
         this.asciiElement.appendChild(cell);
       }
