@@ -66,7 +66,7 @@ class AsciiArtGenerator {
           ctx.fillRect(cellX * size, cellY * size, size, size);
         }
       }
-      console.log(char, values);
+      console.log({ char, values });
     }
     this.charRegions[char] = values;
   }
