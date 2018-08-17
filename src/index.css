@@ -33,3 +33,9 @@ body {
   grid-row-gap: 1px;
   width: 63px;
 }
+
+@media screen and (max-width: 600px) {
+  .dg {
+    display: none;
+  }
+}
