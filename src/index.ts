@@ -29,6 +29,24 @@ class AsciiArtGenerator {
     isDemoRunning: true,
   };
   demoDirection = -1;
+  demoSettings: { url: string, size: number, charSamples: number }[] = [
+    {
+      url: '/avatar.png',
+      size: 50,
+      charSamples: 1,
+    },
+    {
+      url: '/slogan.png',
+      size: 60,
+      charSamples: 2,
+    },
+    {
+      url: '/codepen.png',
+      size: 120,
+      charSamples: 2,
+    },
+  ];
+  demoIndex = 0;
   isImageLoaded = false;
   charRegions: Dict<number[]> = {};
   colorMap: number[][] = [];
@@ -54,7 +72,7 @@ class AsciiArtGenerator {
       this.generate();
     });
     gui.add(this.settings, 'url').listen().onChange(() => this.loadFromUrl());
-    gui.add(this.settings, 'charSamples', 1, 3, 1).onChange(() => {
+    gui.add(this.settings, 'charSamples', 1, 3, 1).listen().onChange(() => {
       this.analyzeCharRegions();
       this.loadFromUrl();
     });
@@ -378,6 +396,14 @@ class AsciiArtGenerator {
         this.generate();
         if (this.settings.brightness >= 0 || this.settings.brightness <= -1) {
           this.demoDirection *= -1;
+        }
+        if (this.settings.brightness <= -1) {
+          this.demoIndex = (this.demoIndex + 1) % this.demoSettings.length;
+          this.settings.url = this.demoSettings[this.demoIndex].url;
+          this.settings.size = this.demoSettings[this.demoIndex].size;
+          this.settings.charSamples = this.demoSettings[this.demoIndex].charSamples;
+          this.analyzeCharRegions();
+          this.loadFromUrl();
         }
       }
       requestAnimationFrame(() => this.demo());
