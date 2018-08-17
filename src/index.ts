@@ -27,6 +27,13 @@ class AsciiArtGenerator {
     ColorPalette: ColorPalette.Monochrome,
     debug: false,
     isDemoRunning: true,
+    saveAsHtml: () => {
+      this.asciiElement.style.setProperty('--width', this.width.toString());
+      this.asciiElement.style.setProperty('--height', this.height.toString());
+      const blob = new Blob([this.asciiElement.outerHTML]);
+      this.exportElement.href = URL.createObjectURL(blob);
+      this.exportElement.click();
+    },
   };
   demoDirection = -1;
   demoSettings: { url: string, size: number, charSamples: number }[] = [
@@ -56,6 +63,7 @@ class AsciiArtGenerator {
   height: number = 0;
   cachedUrls: Dict<HTMLImageElement> = {};
   asciiElement: HTMLElement;
+  exportElement: HTMLAnchorElement;
   debugImageElement: HTMLElement;
   debugCharsElement: HTMLElement;
   colorPalettes: Dict<number[][]> = {};
@@ -63,6 +71,7 @@ class AsciiArtGenerator {
   constructor() {
     const elements = this.elements;
     this.asciiElement = elements.asciiElement;
+    this.exportElement = elements.exportElement;
     this.debugImageElement = elements.debugImageElement;
     this.debugCharsElement = elements.debugCharsElement;
 
@@ -115,16 +124,19 @@ class AsciiArtGenerator {
         this.demo();
       }
     });
+    gui.add(this.settings, 'saveAsHtml')
   }
 
   get elements() {
     const asciiElement = document.getElementById('ascii');
     if (!asciiElement) throw '#ascii Element is missing';
+    const exportElement = document.getElementById('export') as HTMLAnchorElement;
+    if (!exportElement) throw '#export Element is missing';
     const debugImageElement = document.getElementById('debug-image');
     if (!debugImageElement) throw '#debug-image Element is missing';
     const debugCharsElement = document.getElementById('debug-chars');
     if (!debugCharsElement) throw '#debug-chars Element is missing';
-    return { asciiElement, debugImageElement, debugCharsElement };
+    return { asciiElement, exportElement, debugImageElement, debugCharsElement };
   }
 
   generatePalettes() {
