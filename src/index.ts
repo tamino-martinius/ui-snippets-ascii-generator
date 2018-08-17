@@ -24,7 +24,7 @@ class AsciiArtGenerator {
     contrast: 0,
     brightness: 0,
     alpha: 0,
-    ColorPalette: ColorPalette.Monochrome,
+    ColorPalette: ColorPalette.Grey2Bit,
     debug: false,
     isDemoRunning: true,
     saveAsHtml: () => {
