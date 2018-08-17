@@ -61,12 +61,19 @@ class AsciiArtGenerator {
   colorPalettes: Dict<number[][]> = {};
 
   constructor() {
-    const gui: GUI = new dat.GUI();
     const elements = this.elements;
     this.asciiElement = elements.asciiElement;
     this.debugImageElement = elements.debugImageElement;
     this.debugCharsElement = elements.debugCharsElement;
 
+    this.initGui();
+    this.analyzeCharRegions();
+    this.loadFromUrl();
+    this.demo();
+  }
+
+  initGui() {
+    const gui: GUI = new dat.GUI();
     gui.add(this.settings, 'charSet').onChange(() => {
       this.analyzeCharRegions();
       this.generate();
@@ -98,9 +105,6 @@ class AsciiArtGenerator {
         this.demo();
       }
     });
-    this.analyzeCharRegions();
-    this.loadFromUrl();
-    this.demo();
   }
 
   get elements() {
