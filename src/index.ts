@@ -26,7 +26,10 @@ class AsciiArtGenerator {
     alpha: 0,
     ColorPalette: ColorPalette.Monochrome,
     debug: false,
+    isDemoRunning: true,
   };
+  demoDirection = -1;
+  isImageLoaded = false;
   charRegions: Dict<number[]> = {};
   colorMap: number[][] = [];
   valueMap: number[][] = [];
@@ -37,9 +40,7 @@ class AsciiArtGenerator {
   asciiElement: HTMLElement;
   debugImageElement: HTMLElement;
   debugCharsElement: HTMLElement;
-  loaded: boolean = false;
   colorPalettes: Dict<number[][]> = {};
-  onload?: () => void;
 
   constructor() {
     const gui: GUI = new dat.GUI();
@@ -52,12 +53,12 @@ class AsciiArtGenerator {
       this.analyzeCharRegions();
       this.generate();
     });
-    gui.add(this.settings, 'url').onChange(() => this.loadFromUrl());
+    gui.add(this.settings, 'url').listen().onChange(() => this.loadFromUrl());
     gui.add(this.settings, 'charSamples', 1, 3, 1).onChange(() => {
       this.analyzeCharRegions();
       this.loadFromUrl();
     });
-    gui.add(this.settings, 'size', 10, 150, 1).onChange(() => this.loadFromUrl());
+    gui.add(this.settings, 'size', 10, 150, 1).listen().onChange(() => this.loadFromUrl());
     gui.add(this.settings, 'contrast', -1, 1, 0.01).onChange(() => {
       this.normalizeValueMap();
       this.generate();
@@ -66,7 +67,7 @@ class AsciiArtGenerator {
       this.normalizeValueMap();
       this.generate();
     });
-    gui.add(this.settings, 'alpha', -1, 1, 0.01).listen().onChange(() => this.generate());
+    gui.add(this.settings, 'alpha', -1, 1, 0.01).onChange(() => this.generate());
     gui.add(this.settings, 'ColorPalette', ColorPalette).onChange(() => {
       this.generate();
     });
@@ -74,9 +75,14 @@ class AsciiArtGenerator {
       this.analyzeCharRegions();
       this.loadFromUrl();
     });
-    this.generatePalettes();
+    gui.add(this.settings, 'isDemoRunning').listen().onChange(() => {
+      if (this.settings.isDemoRunning) {
+        this.demo();
+      }
+    });
     this.analyzeCharRegions();
     this.loadFromUrl();
+    this.demo();
   }
 
   get elements() {
@@ -195,6 +201,7 @@ class AsciiArtGenerator {
   }
 
   loadFromUrl() {
+    this.isImageLoaded = false;
     if (this.cachedUrls[this.settings.url]) {
       this.onImageLoaded(this.cachedUrls[this.settings.url]);
     } else {
@@ -231,7 +238,7 @@ class AsciiArtGenerator {
     document.body.style.setProperty('--width', this.width.toString());
     document.body.style.setProperty('--height', this.height.toString());
     this.generateValueMap(ctx);
-    if (!this.loaded && this.onload) this.onload();
+    this.isImageLoaded = true;
   }
 
   generateValueMap(ctx: CanvasRenderingContext2D) {
@@ -362,27 +369,21 @@ class AsciiArtGenerator {
       }
     }
   }
+
+  demo() {
+    if (this.settings.isDemoRunning) {
+      if (this.isImageLoaded) {
+        this.settings.brightness += 0.05 * this.demoDirection;
+        this.normalizeValueMap();
+        this.generate();
+        if (this.settings.brightness >= 0 || this.settings.brightness <= -1) {
+          this.demoDirection *= -1;
+        }
+      }
+      requestAnimationFrame(() => this.demo());
+    }
+  }
 }
 
 const generator = new AsciiArtGenerator();
 console.log(generator);
-let isDemoRunning = true;
-
-let direction = 1;
-const demo = () => {
-  if (isDemoRunning) {
-    generator.settings.brightness += 0.05 * direction;
-    generator.normalizeValueMap();
-    generator.generate();
-    if (Math.abs(generator.settings.brightness) >= 1) {
-      direction *= -1;
-    }
-    requestAnimationFrame(demo);
-  }
-};
-
-generator.onload = () => {
-  demo();
-};
-
-window.addEventListener('click', () => isDemoRunning = false);
