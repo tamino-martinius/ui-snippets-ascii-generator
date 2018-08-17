@@ -419,7 +419,7 @@ class AsciiArtGenerator {
         this.settings.brightness += 0.05 * this.demoDirection;
         this.normalizeValueMap();
         this.generate();
-        if (this.settings.brightness >= 0 || this.settings.brightness <= -1) {
+        if (this.settings.brightness >= 0.5 || this.settings.brightness <= -1) {
           this.demoDirection *= -1;
         }
         if (this.settings.brightness <= -1) {
