@@ -67,9 +67,19 @@ class AsciiArtGenerator {
     this.debugCharsElement = elements.debugCharsElement;
 
     this.initGui();
+    this.generatePalettes();
     this.analyzeCharRegions();
     this.loadFromUrl();
+    this.initDemo();
+  }
+
+  initDemo() {
     this.demo();
+    const stopDemo = () => {
+      this.settings.isDemoRunning = false;
+      window.removeEventListener('mousedown', stopDemo);
+    }
+    window.addEventListener('mousedown', stopDemo)
   }
 
   initGui() {
@@ -266,12 +276,13 @@ class AsciiArtGenerator {
   generateValueMap(ctx: CanvasRenderingContext2D) {
     this.valueMap = [];
     this.colorMap = [];
-    const charSamplesSquare = this.settings.charSamples * this.settings.charSamples;
     const data = Array.from(ctx.getImageData(0, 0, this.width * this.settings.charSamples, this.height * this.settings.charSamples).data);
     const rowLength = this.width * this.settings.charSamples * 4;
     for (let cellY = 0; cellY < this.height; cellY += 1) {
       for (let cellX = 0; cellX < this.width; cellX += 1) {
         const cell = [];
+        const pos = (cellX * this.settings.charSamples) * 4 + (cellY * this.settings.charSamples) * rowLength;
+        this.colorMap.push(data.slice(pos, pos + 4));
         for (let posY = 0; posY < this.settings.charSamples; posY += 1) {
           for (let posX = 0; posX < this.settings.charSamples; posX += 1) {
             const pos = (cellX * this.settings.charSamples + posX) * 4 + (cellY * this.settings.charSamples + posY) * rowLength;
@@ -286,8 +297,6 @@ class AsciiArtGenerator {
           }
         }
         this.valueMap.push(cell);
-        const pos = (cellX * this.settings.charSamples) * 4 + (cellY * this.settings.charSamples) * rowLength;
-        this.colorMap.push(data.slice(pos, pos + 4));
       }
     }
     if (this.settings.debug) {
@@ -368,7 +377,7 @@ class AsciiArtGenerator {
       let closestColor = [0, 0, 0];
       let minDiff = Number.MAX_VALUE;
       for (const paletteColor of this.colorPalettes[this.settings.ColorPalette]) {
-        const diff = Math.abs(color[0] - paletteColor[0] + color[1] - paletteColor[1] + color[2] - paletteColor[2]);
+        const diff = Math.abs(color[0] - paletteColor[0]) + Math.abs(color[1] - paletteColor[1]) + Math.abs(color[2] - paletteColor[2]);
         if (diff < minDiff) {
           minDiff = diff;
           closestColor = paletteColor;
